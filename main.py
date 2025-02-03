@@ -1,16 +1,22 @@
 import pandas as pd
 import paramiko
+import os 
+from dotenv import load_dotenv  
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from sqlalchemy import create_engine
 from urllib.parse import quote_plus
 
+# Load environment variables from .env file 
+load_dotenv()
+
+# read the database configuration from the environment variables
 db_config = {
-    'username': 'Django',
-    'password': '@45151BA2fax',  # Contains special character (@)
-    'host': '10.104.5.107',
-    'port': 5432,
-    'database': 'maintain',
-    'table_name': 'server_metrics'
+    'username': os.getenv('DB_USERNAME'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': os.getenv('DB_HOST'),
+    'port': os.getenv('DB_PORT',5432),
+    'database': os.getenv('DB_NAME'),
+    'table_name': os.getenv('DB_TABLE_NAME')
 }
 
 # URL-encode the password to prevent errors
@@ -18,16 +24,14 @@ encoded_password = quote_plus(db_config['password'])
 
 # Correct PostgreSQL connection string
 connection_uri = f"postgresql://{db_config['username']}:{encoded_password}@{db_config['host']}:{db_config['port']}/{db_config['database']}"
-
-# Create SQLAlchemy engine
 engine = create_engine(connection_uri)
 
 class Server:
-    def __init__(self, name, ip, username, password):
+    def __init__(self, name, ip, username_env, password_env):
         self.name = name
         self.ip = ip
-        self.username = username
-        self.password = password
+        self.username = os.getenv(username_env)
+        self.password = os.getenv(password_env)
         self.ssh = None
 
     def connect(self):
@@ -87,18 +91,18 @@ def write_to_db(df):
 
 # Server details
 server_list = [
-    {"name": "BI Server", "ip": "10.104.5.86", "username": "user", "password": "Wyw7PLwC"},
-    {"name": "Talend Server 1", "ip": "10.104.5.87", "username": "user", "password": "cFD6UEnn"},
-    {"name": "Talend Server 2", "ip": "10.104.5.88", "username": "user", "password": "6mJf7Pmr"},
-    {"name": "Scheduler Server", "ip": "10.104.5.89", "username": "user", "password": "SWE8Ufx2"},
-    {"name": "Repo Server", "ip": "10.104.5.80", "username": "user", "password": "8yu43TSM"},
-    {"name": "Datanode 1", "ip": "10.104.4.20", "username": "rtarf_admin", "password": "4xWRwSKaI6"},
-    {"name": "Datanode 2", "ip": "10.104.4.21", "username": "rtarf_admin", "password": "4xWRwSKaI6"},
-    {"name": "Datanode 3", "ip": "10.104.4.22", "username": "rtarf_admin", "password": "4xWRwSKaI6"},
-    {"name": "Gatewaynode", "ip": "10.104.4.19", "username": "rtarf_admin", "password": "4xWRwSKaI6"},
-    {"name": "Activenode", "ip": "10.104.4.252", "username": "rtarf_admin", "password": "4xWRwSKaI6"},
-    {"name": "Standbynode", "ip": "10.104.4.60", "username": "rtarf_admin", "password": "4xWRwSKaI6"},
-    {"name": "Backup", "ip": "10.104.5.161", "username": "root", "password": "Bkdop@6584"}
+    {"name": "BI Server", "ip": "10.104.5.86", "username_env": "BI_SERVER_USER", "password_env": "BI_SERVER_PASS"},
+    {"name": "Talend Server 1", "ip": "10.104.5.87", "username_env": "TALEND1_USER", "password_env": "TALEND1_PASS"},
+    {"name": "Talend Server 2", "ip": "10.104.5.88", "username_env": "TALEND2_USER", "password_env": "TALEND2_PASS"},
+    {"name": "Scheduler Server", "ip": "10.104.5.89", "username_env": "SCHEDULER_USER", "password_env": "SCHEDULER_PASS"},
+    {"name": "Repo Server", "ip": "10.104.5.80", "username_env": "REPO_USER", "password_env": "REPO_PASS"},
+    {"name": "Datanode 1", "ip": "10.104.4.20", "username_env": "DATANODE_USER", "password_env": "DATANODE_PASS"},
+    {"name": "Datanode 2", "ip": "10.104.4.21", "username_env": "DATANODE_USER", "password_env": "DATANODE_PASS"},
+    {"name": "Datanode 3", "ip": "10.104.4.22", "username_env": "DATANODE_USER", "password_env": "DATANODE_PASS"},
+    {"name": "Gatewaynode", "ip": "10.104.4.19", "username_env": "DATANODE_USER", "password_env": "DATANODE_PASS"},
+    {"name": "Activenode", "ip": "10.104.4.252", "username_env": "DATANODE_USER", "password_env": "DATANODE_PASS"},
+    {"name": "Standbynode", "ip": "10.104.4.60", "username_env": "DATANODE_USER", "password_env": "DATANODE_PASS"},
+    {"name": "Backup", "ip": "10.104.5.161", "username_env": "BACKUP_USER", "password_env": "BACKUP_PASS"}
 ]
 
 def main():
