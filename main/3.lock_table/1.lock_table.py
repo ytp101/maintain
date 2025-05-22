@@ -23,7 +23,7 @@ DB_CONFIG = {
 MATTERMOST_TOKEN = os.getenv("BEARER_TOKEN")
 
 # Define the relative path for saving results
-RESULT_DIR = "./result/locktable"
+RESULT_DIR = "/home/user/airflow/maintain/maintain_refactor/result/locktable"
 
 # Ensure the directory exists
 os.makedirs(RESULT_DIR, exist_ok=True)
@@ -50,7 +50,7 @@ def fetch_lock_data(conn):
     """Retrieve locked tables from Hive Metastore."""
     select_stm = """
     SELECT hl_db, hl_table, hl_agent_info
-    FROM HIVE_LOCKS
+    FROM hive_locks
     WHERE hl_table IS NOT NULL AND hl_agent_info != 'Unknown'
     GROUP BY hl_db, hl_table, hl_agent_info
     ORDER BY hl_table ASC, hl_agent_info ASC;
